@@ -1,0 +1,39 @@
+{
+  "reader_cell": "qwen3_8b",
+  "model_id": "Qwen/Qwen3-8B",
+  "model_commit": "b968826d9c46dd6066d109eabc6255188de91218",
+  "data": "/work/nvme/bgvf/ywang151/value-write-rag-practicality/data/musique_long_context_pool.jsonl",
+  "data_sha256": "06f65b85196df405af258ed47b7f7fe20aa073bb7e0fe05f2e43c09ce78d29d2",
+  "bge_selections": "/work/nvme/bgvf/ywang151/value-write-rag-practicality/results/context_scaling/bge/selections.jsonl",
+  "bge_selections_sha256": "289c4cbdadb68a21c636ebda9e4979adf4f55895c953b2431fe9a3db8a98b95a",
+  "scout_selections": "/work/nvme/bgvf/ywang151/value-write-rag-practicality/results/context_scaling/scout/selections.jsonl",
+  "scout_selections_sha256": "9b81f0ff22a226ab758ebec85c4874d0d95fa3d4f23a629fb3bd0f75d1a96ef0",
+  "depths": [
+    20,
+    40,
+    80,
+    160
+  ],
+  "conditions": [
+    "full",
+    "bge2",
+    "scout_value2"
+  ],
+  "max_new_tokens": 32,
+  "attention_implementation": "sdpa",
+  "shard_index": 0,
+  "num_shards": 2,
+  "n_rows": 200,
+  "timing_warmup_examples": 5,
+  "runtime": {
+    "hostname": "gh143.hsn.cm.delta.internal.ncsa.edu",
+    "platform": "Linux-6.4.0-150600.23.53-64kb-aarch64-with-glibc2.38",
+    "python": "3.12.9",
+    "git_commit": "a3787b23df5a4eecc4ab170b02afd160c49179ee",
+    "torch": "2.10.0+cu129",
+    "cuda_available": true,
+    "cuda_version": "12.9",
+    "gpu": "NVIDIA GH200 120GB",
+    "transformers": "5.11.0"
+  }
+}

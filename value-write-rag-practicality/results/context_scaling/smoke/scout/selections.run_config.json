@@ -1,0 +1,38 @@
+{
+  "data": "/work/nvme/bgvf/ywang151/value-write-rag-practicality/data/musique_long_context_pool.jsonl",
+  "data_sha256": "06f65b85196df405af258ed47b7f7fe20aa073bb7e0fe05f2e43c09ce78d29d2",
+  "model_id": "unsloth/Llama-3.2-3B-Instruct",
+  "model_commit": "006f5dcd1393c3add266de40994ba96225e9689d",
+  "writer_window": [
+    14,
+    15,
+    16,
+    17
+  ],
+  "active_num_hidden_layers": 18,
+  "direction": "/work/nvme/bgvf/ywang151/value-write-rag-practicality/calibration/llama_3b/frozen_direction.npz",
+  "direction_sha256": "24e99c9e0c649e196d4be7f75bcc9391f27ff81922726ad4d28a8c5c41ce0161",
+  "depths": [
+    20,
+    40,
+    80,
+    160
+  ],
+  "max_prompt_tokens": 32768,
+  "attention_implementation": "sdpa with exact final-query reconstruction",
+  "shard_index": 0,
+  "num_shards": 1,
+  "n_rows": 2,
+  "timing_warmup_examples": 5,
+  "runtime": {
+    "hostname": "gh036.hsn.cm.delta.internal.ncsa.edu",
+    "platform": "Linux-6.4.0-150600.23.53-64kb-aarch64-with-glibc2.38",
+    "python": "3.12.9",
+    "git_commit": "fd26701f59e3f4014f6aa4c6d005c16c45a3299c",
+    "torch": "2.10.0+cu129",
+    "cuda_available": true,
+    "cuda_version": "12.9",
+    "gpu": "NVIDIA GH200 120GB",
+    "transformers": "5.11.0"
+  }
+}
