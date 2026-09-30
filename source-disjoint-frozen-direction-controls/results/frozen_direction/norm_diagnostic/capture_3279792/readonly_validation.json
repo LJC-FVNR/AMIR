@@ -1,0 +1,21 @@
+{
+  "all_protected_files_unchanged": true,
+  "failure_captured": true,
+  "protected_files_sha256_after": {
+    "results/frozen_direction/main/qwen_14b/manifest.json": "9f5269a783b02f3c0b0d6bb010d3911cc2d57a31ed9250ff7ed6d512191626d9",
+    "results/frozen_direction/main/qwen_14b/rendered_prompts.json": "a6749683a36af7470f46ec21bd747cd6eef427b61cb1602db5d59749d36d755e",
+    "results/frozen_direction/main/qwen_14b/per_prompt.jsonl": "c6643edb6d33c5fd5d04aadc299af44088f7b55bee794ddeb85090c1dad5afb5",
+    "results/frozen_direction/main/qwen_14b/frozen_pc1.npz": "1652b609c75f0790744e72caa83ac3b459d3b9f80e27c109a3fbfb9b65dff474",
+    "results/frozen_direction/main/qwen_14b/fit_statistics.json": "0a9514718c87a22fe9fde760c1a75cae6f4b9165d91e8625542269bd1c6be9e8",
+    "/work/nvme/bgvf/ywang151/direction_36_full_workspace_backup_20260503/Direct36_from_tar/path6/experiments/frozen_direction_intervention.py": "489ed9ea50a4d4446877b4f7f409459dbcad5c7870b71e4358d69197bf7f88e6",
+    "/work/nvme/bgvf/ywang151/direction_36_full_workspace_backup_20260503/direction_36_active_set_discovery_by_source_token_hidden_units/custom_outputs/confirmatory/hotpot_400_prompts.jsonl": "7acb005a2a19a89d09f32e97fe3ae7e647c4774b5f17c60c5f814bdcc3ec829b",
+    "/work/nvme/bgvf/ywang151/direction_36_full_workspace_backup_20260503/direction_36_active_set_discovery_by_source_token_hidden_units/custom_experiment.py": "3c00fa3dd78f78c3ec0f7288a3e21df4ed7b921b91fc25c1b81a07e45e13208c",
+    "/work/nvme/bgvf/ywang151/direction_36_full_workspace_backup_20260503/direction_36_active_set_discovery_by_source_token_hidden_units/run_reviewer_controls.py": "f13f2a09b55f9517951015141f51a4cf261aa0e751f73d296877d1eda4c63e5b",
+    "/work/nvme/bgvf/ywang151/direction_36_full_workspace_backup_20260503/direction_36_active_set_discovery_by_source_token_hidden_units/run_phase8_experiments.py": "f845f89a12e482755069c62d89945fc0422c96a10eb8e50dc627000bd66a08e6",
+    "/work/nvme/bgvf/ywang151/value-write-rag-practicality/vw_rag/model_loading.py": "00baf855f85169d6488ccf0360aa59e264e8afc1b388b16666db4a66d83ccd29",
+    "/work/nvme/bgvf/ywang151/value-write-rag-practicality/vw_rag/value_write.py": "f7d026a34984b777b4b8d474524cc9bfecc7cad7462150e1e771dadcda2c0705",
+    "/work/nvme/bgvf/ywang151/LLM_Research-main/src/hook_registry.py": "416a757e0ebf52cab1cc15bd1776ae0824bb9a6b2455e93c0036f604c6701ab2",
+    "/work/nvme/bgvf/ywang151/LLM_Research-main/src/load_model.py": "787fff592336a2bb4c71cacba289d039cce3be7ac97723002e9aa8ace3d946d8",
+    "/work/nvme/bgvf/ywang151/direction_36_full_workspace_backup_20260503/Direct36_from_tar/path6/experiments/PROTOCOL.md": "bf93bec354f3864019b8e5807345e66541a25ff07084290d79ad3eacb3f24f79"
+  }
+}

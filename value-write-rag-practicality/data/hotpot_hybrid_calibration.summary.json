@@ -1,0 +1,11 @@
+{
+  "source_data": "/work/nvme/bgvf/ywang151/support_evidencespace/artifacts/prompts/hotpot_fullwiki_rag.jsonl",
+  "source_data_sha256": "03c757466cbc8773fc511df8ea6cf4dfc49f6f7dbfef8cb42221e81a58fd4e18",
+  "source_evaluation": "/work/nvme/bgvf/ywang151/support_evidencespace/results/rag_fullwiki/qwen_14b/per_example.jsonl",
+  "source_evaluation_sha256": "abdf135938b10f489208b7ef2d25e14017076f3e51c68646fc5cd504df839934",
+  "direction_calibration_examples": 50,
+  "held_out_examples": 200,
+  "direction_calibration_overlap": 0,
+  "held_out_id_sha256": "b82d5f15c646acb3cfef44b6e2fc1668cb771ee687e88c75cf5ac487ee57ab71",
+  "output_sha256": "9eee72ba7b75b9903f98a59527daeb9205c90fcff725e7f36176407ebbd3f16d"
+}

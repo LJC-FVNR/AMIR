@@ -1,0 +1,42 @@
+{
+  "cell": "qwen_14b",
+  "model_id": "Qwen/Qwen2.5-14B-Instruct",
+  "model_commit": "cf98f3b3bbb457ad9e2bb7baf9a0125b6b88caa8",
+  "writer_window": [
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46,
+    47
+  ],
+  "data": "data/hotpot_hybrid_calibration.jsonl",
+  "data_sha256": "9eee72ba7b75b9903f98a59527daeb9205c90fcff725e7f36176407ebbd3f16d",
+  "direction": "/work/nvme/bgvf/ywang151/value-write-rag-practicality/calibration/qwen_14b/frozen_direction.npz",
+  "direction_sha256": "2004bcb1b926e14a6f8bb2c0409c328ef7b405dffae3dd1d2d871d2f8da77db9",
+  "max_prompt_tokens": 4096,
+  "shard_index": 0,
+  "num_shards": 1,
+  "n_rows": 200,
+  "runtime": {
+    "hostname": "gh109.hsn.cm.delta.internal.ncsa.edu",
+    "platform": "Linux-6.4.0-150600.23.53-64kb-aarch64-with-glibc2.38",
+    "python": "3.12.9",
+    "git_commit": "e8eb301b9aae526f8265811081756314261c331f",
+    "torch": "2.10.0+cu129",
+    "cuda_available": true,
+    "cuda_version": "12.9",
+    "gpu": "NVIDIA GH200 120GB",
+    "transformers": "5.11.0"
+  }
+}

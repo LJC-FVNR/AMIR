@@ -1,0 +1,39 @@
+{
+  "reader_cell": "qwen3_8b",
+  "model_id": "Qwen/Qwen3-8B",
+  "model_commit": "b968826d9c46dd6066d109eabc6255188de91218",
+  "data": "/work/nvme/bgvf/ywang151/value-write-rag-practicality/data/musique_long_context_pool.jsonl",
+  "data_sha256": "06f65b85196df405af258ed47b7f7fe20aa073bb7e0fe05f2e43c09ce78d29d2",
+  "bge_selections": "results/context_scaling/smoke/bge/selections.jsonl",
+  "bge_selections_sha256": "c8c4efbfe938daa174ec3fb266cdb21e360449aabaeac6a29cd6db809fad59fd",
+  "scout_selections": "results/context_scaling/smoke/scout/selections.jsonl",
+  "scout_selections_sha256": "2c20ca3882482eaf128ed0ed4304ac9e32d0500149931d5e699525ea7c8c24e1",
+  "depths": [
+    20,
+    40,
+    80,
+    160
+  ],
+  "conditions": [
+    "full",
+    "bge2",
+    "scout_value2"
+  ],
+  "max_new_tokens": 32,
+  "attention_implementation": "sdpa",
+  "shard_index": 0,
+  "num_shards": 1,
+  "n_rows": 2,
+  "timing_warmup_examples": 5,
+  "runtime": {
+    "hostname": "gh036.hsn.cm.delta.internal.ncsa.edu",
+    "platform": "Linux-6.4.0-150600.23.53-64kb-aarch64-with-glibc2.38",
+    "python": "3.12.9",
+    "git_commit": "fd26701f59e3f4014f6aa4c6d005c16c45a3299c",
+    "torch": "2.10.0+cu129",
+    "cuda_available": true,
+    "cuda_version": "12.9",
+    "gpu": "NVIDIA GH200 120GB",
+    "transformers": "5.11.0"
+  }
+}

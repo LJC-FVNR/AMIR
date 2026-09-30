@@ -1,0 +1,38 @@
+{
+  "reader_cell": "qwen_14b",
+  "model_id": "Qwen/Qwen2.5-14B-Instruct",
+  "model_commit": "cf98f3b3bbb457ad9e2bb7baf9a0125b6b88caa8",
+  "data": "/work/nvme/bgvf/ywang151/value-write-rag-practicality/data/musique_pooled_rag_confirm.jsonl",
+  "data_sha256": "45c69d96e1b9dc3159cd3f4690b8fce0a9c7bb711738f8e25fa97cb6ba314945",
+  "scout_selections": "/work/nvme/bgvf/ywang151/value-write-rag-practicality/results/scout/llama_3b_l17/selections.jsonl",
+  "scout_selections_sha256": "30f828d10e20995c6a4c92e9d9635adfb6afeb679125c1ac993f1b210173727a",
+  "reranker_selections": "/work/nvme/bgvf/ywang151/value-write-rag-practicality/results/reranker/bge_v2_m3/selections.jsonl",
+  "reranker_selections_sha256": "2b8e44fc9e57b34ed4c6faa0e64bca9a2d7166a53159c2d56509422d89202027",
+  "reference_results": "/work/nvme/bgvf/ywang151/value-write-rag-practicality/reference_results/qwen_14b/per_example.jsonl",
+  "reference_results_sha256": "84b3e8e94ffd3a980322418bc6f7b84dada1dbca0c3f6941ae24d476e07d1132",
+  "conditions": [
+    "full20",
+    "bm25_2",
+    "scout_attention2",
+    "scout_value2",
+    "oracle2",
+    "reranker2"
+  ],
+  "max_new_tokens": 32,
+  "attention_implementation": "transformers_default",
+  "shard_index": 0,
+  "num_shards": 1,
+  "n_rows_in_shard": 400,
+  "timing_warmup_examples": 5,
+  "runtime": {
+    "hostname": "gh114.hsn.cm.delta.internal.ncsa.edu",
+    "platform": "Linux-6.4.0-150600.23.53-64kb-aarch64-with-glibc2.38",
+    "python": "3.12.9",
+    "git_commit": "fc7351033ba20f91b622aa322882b856473797d6",
+    "torch": "2.10.0+cu129",
+    "cuda_available": true,
+    "cuda_version": "12.9",
+    "gpu": "NVIDIA GH200 120GB",
+    "transformers": "5.11.0"
+  }
+}
