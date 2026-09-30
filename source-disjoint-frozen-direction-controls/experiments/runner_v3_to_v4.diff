@@ -1,0 +1,213 @@
+--- frozen_direction_intervention.py	2026-09-30 11:07:33.000000000 -0500
++++ frozen_direction_intervention_v4.py	2026-09-30 11:55:25.000000000 -0500
+@@ -1,10 +1,14 @@
+ #!/usr/bin/env python3
+-"""Source-disjoint frozen-PC1 interventions with displacement-norm controls.
++"""Source-disjoint frozen-PC1 interventions with audited displacement controls.
+
+ This is an independent execution, not a continuation of historical phase14.
+ Fit: Hotpot source ranks 1--200; evaluation: ranks 201--400. No fit labels
+ choose a component or sign. Only baseline-correct evaluation prompts receive
+-interventions. All outcomes, including repeated labels, are retained.
++interventions. All outcomes, including repeated labels, are retained. V4 keeps
++every previously accepted edit unchanged. If the original numerical criterion
++fails, it certifies the adjacent FP32 amplitudes on the execution device and
++uses the nearest reachable BF16 edit along the same vector. Original-criterion
++violations remain explicitly flagged; there is no tolerance increase.
+ """
+ from __future__ import annotations
+
+@@ -47,6 +51,7 @@
+ BASE_SEED = 2991137
+ MATCH_RTOL = 0.005
+ MATCH_OUTPUT_NORM_FLOOR = 1e-6
++LEGACY_RUNNER_SHA256 = '489ed9ea50a4d4446877b4f7f409459dbcad5c7870b71e4358d69197bf7f88e6'
+
+
+ def sha256_file(path: Path) -> str:
+@@ -134,7 +139,7 @@
+                    'original_output_norm': float(original.norm())}
+
+
+-def equal_norm_displacement(before: torch.Tensor, unit: torch.Tensor, target: float) -> tuple[torch.Tensor, dict]:
++def _legacy_equal_norm_displacement(before: torch.Tensor, unit: torch.Tensor, target: float) -> tuple[torch.Tensor, dict]:
+     """Choose a scalar before BF16 cast, matching the resulting displacement.
+
+     The Gaussian unit vector is fixed; only its scalar is adjusted to compensate
+@@ -195,6 +200,125 @@
+                    'scale': scale, 'rounding_steps': steps, 'original_output_norm': original_norm}
+
+
++def _certify_nearest_quantized_edit(before: torch.Tensor, normalized_unit: torch.Tensor,
++                                    target: float, original_norm: float) -> tuple[torch.Tensor, dict]:
++    """Find the nearest norm on the fixed-vector quantized scalar staircase.
++
++    Every candidate is evaluated on before.device using the original FP32
++    multiply/add, BF16 assignment, and FP32 norm. Binary search is over ordered
++    positive FP32 bit patterns and terminates only at adjacent amplitudes that
++    straddle the target. The already-normalized vector is never changed.
++    """
++    if target <= 0 or not np.isfinite(target):
++        raise ValueError('Certification requires a positive finite target')
++    if not torch.isfinite(before).all() or not torch.isfinite(normalized_unit).all():
++        raise RuntimeError('Non-finite activation or direction in norm certification')
++    if not float(normalized_unit.float().norm()) > 0:
++        raise RuntimeError('Zero direction in norm certification')
++    original = before.float()
++    tolerance = max(MATCH_RTOL * target, MATCH_OUTPUT_NORM_FLOOR * original_norm)
++    evaluations = 0
++    def to_bits(value):
++        return int(np.asarray(np.float32(value)).view(np.uint32))
++    def from_bits(bits):
++        return float(np.asarray(np.uint32(bits)).view(np.float32))
++    def candidate(scale):
++        nonlocal evaluations
++        scalar = float(np.float32(scale))
++        after = (original + scalar * normalized_unit).to(before.dtype)
++        achieved = float(torch.linalg.vector_norm(after.float() - original))
++        evaluations += 1
++        return after, achieved, scalar
++
++    lower_bits = 0
++    upper_scalar = max(float(np.float32(target)), float(np.finfo(np.float32).tiny))
++    upper_after, upper_norm, upper_scalar = candidate(upper_scalar)
++    expansions = 0
++    while upper_norm < target:
++        lower_bits = to_bits(upper_scalar)
++        upper_scalar = float(np.float32(upper_scalar * 2))
++        if not np.isfinite(upper_scalar):
++            raise RuntimeError('No finite scalar bracket for norm certification')
++        upper_after, upper_norm, upper_scalar = candidate(upper_scalar)
++        expansions += 1
++        if expansions > 150:
++            raise RuntimeError('Norm certification bracket expansion did not converge')
++    upper_bits = to_bits(upper_scalar)
++    iterations = 0
++    while upper_bits - lower_bits > 1:
++        middle_bits = (lower_bits + upper_bits) // 2
++        _, achieved, _ = candidate(from_bits(middle_bits))
++        if achieved < target:
++            lower_bits = middle_bits
++        else:
++            upper_bits = middle_bits
++        iterations += 1
++        if iterations > 32:
++            raise RuntimeError('FP32 bit-bracket search exceeded 32 iterations')
++    lower_after, lower_norm, lower_scalar = candidate(from_bits(lower_bits))
++    upper_after, upper_norm, upper_scalar = candidate(from_bits(upper_bits))
++    if upper_bits - lower_bits != 1 or not lower_norm < target <= upper_norm:
++        raise RuntimeError('Norm certification did not establish adjacent amplitudes straddling the target')
++    # Stable lower endpoint for an exact tie; no RNG, vector resampling or
++    # coordinate correction enters the fallback.
++    select_lower = abs(lower_norm - target) <= abs(upper_norm - target)
++    after, achieved, scalar = ((lower_after, lower_norm, lower_scalar) if select_lower
++                               else (upper_after, upper_norm, upper_scalar))
++    error = abs(achieved - target)
++    original_pass = error <= tolerance
++    def endpoint(after_value, norm, scale, bits):
++        return {'scale': scale, 'scalar_float32_bits': bits, 'achieved_norm': norm,
++                'achieved_norm_fp64': float(torch.linalg.vector_norm((after_value.float() - original).double())),
++                'absolute_norm_error': abs(norm - target),
++                'original_tolerance_passed': abs(norm - target) <= tolerance,
++                'output_bf16_sha256': hashlib.sha256(after_value.detach().cpu().view(torch.uint8).numpy().tobytes()).hexdigest()}
++    bracket = {'lower': endpoint(lower_after, lower_norm, lower_scalar, lower_bits),
++               'upper': endpoint(upper_after, upper_norm, upper_scalar, upper_bits),
++               'selected_endpoint': 'lower' if select_lower else 'upper',
++               'tie_rule': 'lower', 'norm_gap': upper_norm - lower_norm,
++               'adjacent_scalar_bits_difference': upper_bits - lower_bits,
++               'straddles_target': True, 'device': str(before.device),
++               'candidate_dtype': str(before.dtype), 'iterations': iterations,
++               'expansions': expansions, 'candidate_evaluations': evaluations,
++               'original_combined_tolerance': tolerance,
++               'original_tolerance_attainable': original_pass}
++    return after, {'requested_norm': target, 'achieved_norm': achieved,
++                   'relative_norm_error': error / target, 'absolute_norm_error': error,
++                   'output_relative_norm_error': error / max(original_norm, 1e-30),
++                   'absolute_tolerance_floor': MATCH_OUTPUT_NORM_FLOOR * original_norm,
++                   'used_absolute_tolerance': error > MATCH_RTOL * target and original_pass,
++                   'scale': scalar, 'original_output_norm': original_norm,
++                   'original_tolerance_passed': original_pass,
++                   'certified_fallback_used': True, 'quantization_limited': not original_pass,
++                   'certified_bracket': bracket, 'certified_search_steps': evaluations}
++
++
++def equal_norm_displacement(before: torch.Tensor, unit: torch.Tensor, target: float) -> tuple[torch.Tensor, dict]:
++    """Keep original successes; transparently flag certified nearest fallbacks."""
++    try:
++        after, record = _legacy_equal_norm_displacement(before, unit, target)
++    except RuntimeError as error:
++        if not str(error).startswith('BF16 displacement norm cannot meet declared tolerance:'):
++            raise
++        frame = error.__traceback__
++        while frame is not None and frame.tb_frame.f_code.co_name != '_legacy_equal_norm_displacement':
++            frame = frame.tb_next
++        if frame is None:
++            raise RuntimeError('Original norm failure has no matcher frame') from error
++        saved = frame.tb_frame.f_locals
++        # The exact vector used by the failed original call is reused, including
++        # its original FP32 normalization rounding on this device.
++        after, record = _certify_nearest_quantized_edit(before, saved['unit'], target,
++                                                       saved['original_norm'])
++        record['rounding_steps'] = saved['steps']
++        record['legacy_failure'] = str(error)
++        del frame, saved
++        return after, record
++    record.update(original_tolerance_passed=True, certified_fallback_used=False,
++                  quantization_limited=False)
++    return after, record
++
++
+ def synchronize(device: torch.device) -> None:
+     if device.type == 'cuda':
+         torch.cuda.synchronize(device)
+@@ -372,7 +496,7 @@
+     p.add_argument('--rag-root', type=Path, default=DEFAULT_RAG)
+     p.add_argument('--legacy-root', type=Path, default=DEFAULT_LEGACY)
+     p.add_argument('--data', type=Path)
+-    p.add_argument('--protocol-file', type=Path, default=Path(__file__).with_name('PROTOCOL.md'),
++    p.add_argument('--protocol-file', type=Path, default=Path(__file__).with_name('PROTOCOL_v4.md'),
+                    help='Parent protocol file included in the immutable run manifest')
+     p.add_argument('--revision', help='Must equal the predeclared per-model commit; defaults to that pinned revision')
+     p.add_argument('--smoke', type=int, default=0, help='1--10 sources on each side; zero is complete 200+200-source protocol')
+@@ -421,7 +545,8 @@
+             raise RuntimeError('Llama checkpoint verification artifact is required before loading the mirrored weights')
+         input_files.append(verification)
+     identity = {
+-        'version': 'path6-six-model-source-disjoint-pc1-displacement-v3', 'cell': args.cell,
++        'version': 'path6-six-model-source-disjoint-pc1-displacement-v4', 'cell': args.cell,
++        'legacy_runner_sha256': LEGACY_RUNNER_SHA256,
+         'model_id': cfg['model_id'], 'resolved_snapshot': snapshot.name,
+         'canonical_model_id': cfg.get('canonical_model_id', cfg['model_id']),
+         'canonical_revision': cfg.get('canonical_revision', cfg['revision']),
+@@ -444,6 +569,8 @@
+         'norm_relative_tolerance': MATCH_RTOL,
+         'norm_absolute_output_fraction': MATCH_OUTPUT_NORM_FLOOR,
+         'norm_tolerance_rule': 'max(0.005 * target_edit_norm, 1e-6 * current_attention_output_norm); absolute floor only after fixed scalar search',
++        'norm_quantization_policy': 'Keep every original passing edit unchanged; on original failure certify adjacent FP32 scalar amplitudes on the same device and same normalized vector, choose the nearest actual norm with lower tie; preserve flags for original-bound violations',
++        'norm_controls_are_approximate': True,
+         'max_prompt_tokens': args.max_prompt_tokens,
+         'fit_centering': 'within prompt across six text-only fact vectors, then numerical pooled recentering',
+         'fit_component': 'first covariance eigenvector by variance alone; no gold component/sign selection',
+@@ -619,6 +746,9 @@
+                 requested_energy = sum(p['requested_norm'] ** 2 for p in control['perturbations'])
+                 achieved_energy = sum(p['achieved_norm'] ** 2 for p in control['perturbations'])
+                 control.update(replicate=replicate, seed=seed,
++                               original_tolerance_passed=all(p['original_tolerance_passed'] for p in control['perturbations']),
++                               certified_fallback_sites=sum(p['certified_fallback_used'] for p in control['perturbations']),
++                               quantization_limited_sites=sum(p['quantization_limited'] for p in control['perturbations']),
+                                requested_displacement_energy=requested_energy,
+                                achieved_displacement_energy=achieved_energy,
+                                displacement_energy_ratio=achieved_energy / requested_energy if requested_energy > 0 else 1.0,
+@@ -645,6 +775,12 @@
+                'maximum_random_norm_absolute_error': max((p['absolute_norm_error'] for r in eligible for c in r['random'] for p in c['perturbations']), default=0),
+                'maximum_random_norm_output_relative_error': max((p['output_relative_norm_error'] for r in eligible for c in r['random'] for p in c['perturbations']), default=0),
+                'random_sites_using_absolute_tolerance': sum(p['used_absolute_tolerance'] for r in eligible for c in r['random'] for p in c['perturbations']),
++               'random_intervention_sites': sum(len(c['perturbations']) for r in eligible for c in r['random']),
++               'random_sites_original_tolerance_failed': sum(not p['original_tolerance_passed'] for r in eligible for c in r['random'] for p in c['perturbations']),
++               'random_sites_certified_fallback': sum(p['certified_fallback_used'] for r in eligible for c in r['random'] for p in c['perturbations']),
++               'random_sites_quantization_limited': sum(p['quantization_limited'] for r in eligible for c in r['random'] for p in c['perturbations']),
++               'random_rollouts_with_original_tolerance_failure': sum(any(not p['original_tolerance_passed'] for p in c['perturbations']) for r in eligible for c in r['random']),
++               'maximum_certified_norm_gap': max((p['certified_bracket']['norm_gap'] for r in eligible for c in r['random'] for p in c['perturbations'] if p['certified_fallback_used']), default=0),
+                'minimum_random_displacement_energy_ratio': min((c['displacement_energy_ratio'] for r in eligible for c in r['random']), default=1.0),
+                'maximum_random_displacement_energy_ratio': max((c['displacement_energy_ratio'] for r in eligible for c in r['random']), default=1.0),
+                'all_fit_source_ids_disjoint_from_eval': True, 'component_sha256': stats['component_sha256'],
